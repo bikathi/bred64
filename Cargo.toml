@@ -1,7 +1,16 @@
 [package]
 name = "bred64"
-version = "0.1.0"
-edition = "2024"
+version = "0.1.1"
+description = "A simple, highly-optimized base64 library for Rust"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/bikathi/bred64.git"
+categories = ["encoding"]
 
 [dependencies]
 thiserror = "2.0.16"
+
+[lib]
+name = "bred64"
+path = "src/lib.rs"
+
