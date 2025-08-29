@@ -6,7 +6,7 @@ pub struct Base64 {
 }
 
 impl Base64 {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             lookup_table: *b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
         }
@@ -37,10 +37,11 @@ impl Base64 {
         Err(EncoderError::InvalidCharacter)
     }
 
-    fn encode<T>(&self, input: &[u8], space_allocator: Option<T>) -> Result<Box<[u8]>, EncoderError>
-    where
-        T: AllocForEncode,
-    {
+    pub fn encode<T: AllocForEncode>(
+        &self,
+        input: &[u8],
+        space_allocator: Option<T>,
+    ) -> Result<Box<[u8]>, EncoderError> {
         if input.is_empty() {
             return Err(EncoderError::General(String::from(
                 "input cannot be empty!",
@@ -123,7 +124,11 @@ impl Base64 {
         Ok(output.into_boxed_slice())
     }
 
-    fn decode<T>(&self, input: &[u8], space_allocator: Option<T>) -> Result<Box<[u8]>, EncoderError>
+    pub fn decode<T>(
+        &self,
+        input: &[u8],
+        space_allocator: Option<T>,
+    ) -> Result<Box<[u8]>, EncoderError>
     where
         T: AllocForDecode,
     {
@@ -288,7 +293,7 @@ mod decode_testing {
         let decoded = instance.decode::<Base64>(&*encoded, None).unwrap();
         assert_eq!(&*decoded, b"=");
     }
-    
+
     #[test]
     fn decoded_should_match_double_char() {
         let input = b"Hi";
@@ -297,7 +302,7 @@ mod decode_testing {
         let decoded = instance.decode::<Base64>(&*encoded, None).unwrap();
         assert_eq!(&*decoded, b"Hi");
     }
-    
+
     #[test]
     fn decoded_should_match_multi_char() {
         let input = b"hello world";
@@ -306,13 +311,16 @@ mod decode_testing {
         let decoded = instance.decode::<Base64>(&*encoded, None).unwrap();
         assert_eq!(&*decoded, b"hello world");
     }
-    
+
     #[test]
     fn decoded_should_match_complex_multi_char() {
         let input = b"This iS A RanDom Sen_tenCCe I?.. Fo..un??d oN tHe inter:))net";
         let instance = Base64::new();
         let encoded = instance.encode::<Base64>(input, None).unwrap();
         let decoded = instance.decode::<Base64>(&*encoded, None).unwrap();
-        assert_eq!(&*decoded, b"This iS A RanDom Sen_tenCCe I?.. Fo..un??d oN tHe inter:))net");
+        assert_eq!(
+            &*decoded,
+            b"This iS A RanDom Sen_tenCCe I?.. Fo..un??d oN tHe inter:))net"
+        );
     }
 }
