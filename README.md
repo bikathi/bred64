@@ -58,6 +58,15 @@ enough space.
 As a running example, here is how we would declare a custom allocator to pass to the encode function:
 
 ```rust
+struct MyCustomSpaceAllocator;
+
+impl AllocForEncode for MyCustomSpaceAllocator {
+    fn length_of_encode_output(input_bytes: &[u8]) -> Result<usize, crate::error::EncoderError> {
+        // here, I am calling the default implementation of this function but you're free to do what you want here
+        <Base64 as AllocForEncode>::length_of_encode_output(input_bytes)
+    }
+}
+
 #[test]
 fn encode_paragraph_with_custom_space_allocator() {
     let input = b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
