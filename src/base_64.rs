@@ -1,5 +1,3 @@
-use std::default;
-
 use crate::error::EncoderError;
 use crate::mem_allocator::{alloc_for_decode::AllocForDecode, alloc_for_encode::AllocForEncode};
 
@@ -198,6 +196,96 @@ impl Base64 {
 
 impl AllocForEncode for Base64 {}
 impl AllocForDecode for Base64 {}
+
+#[cfg(test)]
+mod user_encoder_space_allocator_testing {
+    use super::Base64;
+    use crate::mem_allocator::alloc_for_encode::AllocForEncode;
+
+    struct MyFaultyAllocator;
+    impl AllocForEncode for MyFaultyAllocator {
+        fn length_of_encode_output(
+            input_bytes: &[u8],
+        ) -> Result<usize, crate::error::EncoderError> {
+            // here, I am calling the default implementation of this function but you're free to do what you want here
+            let base_space = <Base64 as AllocForEncode>::length_of_encode_output(input_bytes)?;
+            Ok(base_space / 2usize) // we reduce the space to be less than what is needed by default
+        }
+    }
+
+    #[test]
+    fn less_space_should_fail() {
+        let instance = Base64::new();
+        assert!(instance
+            .encode(b"some test string", Some(MyFaultyAllocator))
+            .is_err());
+    }
+
+    struct MyNotFaultyAllocator;
+    impl AllocForEncode for MyNotFaultyAllocator {
+        fn length_of_encode_output(
+            input_bytes: &[u8],
+        ) -> Result<usize, crate::error::EncoderError> {
+            // here, I am calling the default implementation of this function but you're free to do what you want here
+            let base_space = <Base64 as AllocForEncode>::length_of_encode_output(input_bytes)?;
+            Ok(base_space * 2usize) // we provide double the space than  what is needed by default
+        }
+    }
+
+    #[test]
+    fn more_space_should_pass() {
+        let instance = Base64::new();
+        assert!(instance
+            .encode(b"some test string", Some(MyNotFaultyAllocator))
+            .is_ok());
+    }
+}
+
+#[cfg(test)]
+mod user_decoder_space_allocator_testing {
+    use super::Base64;
+    use crate::mem_allocator::{
+        alloc_for_decode::AllocForDecode, alloc_for_encode::AllocForEncode,
+    };
+
+    struct MyFaultyAllocator;
+    impl AllocForDecode for MyFaultyAllocator {
+        fn length_of_decode_output(
+            input_bytes: &[u8],
+        ) -> Result<usize, crate::error::EncoderError> {
+            // here, I am calling the default implementation of this function but you're free to do what you want here
+            let base_space = <Base64 as AllocForDecode>::length_of_decode_output(input_bytes)?;
+            Ok(base_space / 2usize) // we reduce the space to be less than what is needed by default
+        }
+    }
+
+    #[test]
+    fn less_space_should_fail() {
+        let instance = Base64::new();
+        assert!(instance
+            .decode(b"SGk=", Some(MyFaultyAllocator))
+            .is_err());
+    }
+
+    struct MyNotFaultyAllocator;
+    impl AllocForDecode for MyNotFaultyAllocator {
+        fn length_of_decode_output(
+            input_bytes: &[u8],
+        ) -> Result<usize, crate::error::EncoderError> {
+            // here, I am calling the default implementation of this function but you're free to do what you want here
+            let base_space = <Base64 as AllocForDecode>::length_of_decode_output(input_bytes)?;
+            Ok(base_space * 2usize) // we provide double the space than  what is needed by default
+        }
+    }
+
+    #[test]
+    fn more_space_should_pass() {
+        let instance = Base64::new();
+        assert!(instance
+            .decode(b"SGk=", Some(MyNotFaultyAllocator))
+            .is_ok());
+    }
+}
 
 #[cfg(test)]
 mod char_lookup_and_indexing {
