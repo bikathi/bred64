@@ -1,3 +1,5 @@
+use std::default;
+
 use crate::error::EncoderError;
 use crate::mem_allocator::{alloc_for_decode::AllocForDecode, alloc_for_encode::AllocForEncode};
 
@@ -49,12 +51,19 @@ impl Base64 {
         }
 
         let output_space = {
-            if let Some(_) = space_allocator {
-                // use the user's space allocator logic
-                T::length_of_encode_output(input)?
-            } else {
-                // else use our own logic
-                <Base64 as AllocForEncode>::length_of_encode_output(input)?
+            let default_space = <Base64 as AllocForEncode>::length_of_encode_output(input)?;
+            match space_allocator {
+                Some(_) => {
+                    let user_space = T::length_of_encode_output(&input)?;
+                    if user_space < default_space {
+                        return Err(EncoderError::General(String::from(
+                            "Provided space too small!",
+                        )));
+                    }
+
+                    user_space
+                }
+                None => default_space,
             }
         };
 
@@ -139,12 +148,19 @@ impl Base64 {
         }
 
         let output_space = {
-            if let Some(_) = space_allocator {
-                // use the user's space allocator logic
-                T::length_of_decode_output(input)?
-            } else {
-                // else use our own logic
-                <Base64 as AllocForDecode>::length_of_decode_output(input)?
+            let default_space = <Base64 as AllocForDecode>::length_of_decode_output(input)?;
+            match space_allocator {
+                Some(_) => {
+                    let user_space = T::length_of_decode_output(&input)?;
+                    if user_space < default_space {
+                        return Err(EncoderError::General(String::from(
+                            "Provided space too small!",
+                        )));
+                    }
+
+                    user_space
+                }
+                None => default_space,
             }
         };
 
