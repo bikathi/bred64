@@ -168,7 +168,7 @@ impl Base64 {
             let mut count = 0usize;
 
             for i in 0..input.len() {
-                temp_buff[count] = self.index_of_char(input[i])? as u8;
+                temp_buff[count] = u8::try_from(self.index_of_char(input[i])?).unwrap();
                 count += 1usize;
 
                 if count == 4usize {
@@ -244,9 +244,7 @@ mod user_encoder_space_allocator_testing {
 #[cfg(test)]
 mod user_decoder_space_allocator_testing {
     use super::Base64;
-    use crate::mem_allocator::{
-        alloc_for_decode::AllocForDecode, alloc_for_encode::AllocForEncode,
-    };
+    use crate::mem_allocator::alloc_for_decode::AllocForDecode;
 
     struct MyFaultyAllocator;
     impl AllocForDecode for MyFaultyAllocator {
@@ -262,9 +260,7 @@ mod user_decoder_space_allocator_testing {
     #[test]
     fn less_space_should_fail() {
         let instance = Base64::new();
-        assert!(instance
-            .decode(b"SGk=", Some(MyFaultyAllocator))
-            .is_err());
+        assert!(instance.decode(b"SGk=", Some(MyFaultyAllocator)).is_err());
     }
 
     struct MyNotFaultyAllocator;
@@ -281,9 +277,7 @@ mod user_decoder_space_allocator_testing {
     #[test]
     fn more_space_should_pass() {
         let instance = Base64::new();
-        assert!(instance
-            .decode(b"SGk=", Some(MyNotFaultyAllocator))
-            .is_ok());
+        assert!(instance.decode(b"SGk=", Some(MyNotFaultyAllocator)).is_ok());
     }
 }
 
