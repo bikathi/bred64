@@ -7,6 +7,7 @@ license = "MIT"
 repository = "https://github.com/bikathi/bred64.git"
 categories = ["encoding"]
 authors = ["Bikathi Martin", "bikathimartin@outlook.com"]
+keywords = ["encoding", "base64"]
 
 [dependencies]
 thiserror = "2.0.16"
