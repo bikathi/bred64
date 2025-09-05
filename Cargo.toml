@@ -1,6 +1,6 @@
 [package]
 name = "bred64"
-version = "0.1.5"
+version = "0.1.6"
 description = "A simple, highly-optimized base64 library for Rust"
 edition = "2021"
 license = "MIT"
